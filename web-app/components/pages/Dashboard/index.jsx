@@ -7,10 +7,12 @@ import { useEffect, useState } from "react";
 import Button from "@/components/shared/Button";
 import LogoSGID from "@/public/assets/img/logo-sgid.png";
 import Image from "next/image";
+import { Tooltip as FlowbiteTooltip } from "flowbite-react";
 import { useRouter } from "next/router";
 import { toast } from "react-toastify";
 import LogoShopee from "@/public/assets/svg/icon-shopee.svg";
 import LogoLazada from "@/public/assets/svg/icon-lazada.svg";
+import LogoInfo from "@/public/assets/svg/icon-info.svg";
 import dayjs from "dayjs";
 import { Line } from "react-chartjs-2";
 import {
@@ -24,6 +26,7 @@ import {
   Legend
 } from "chart.js";
 import { chartData, chartLabels, chartOptions } from "./chart";
+import { mockTransactions } from "./mock";
 
 const Dashboard = () => {
   const supabaseClient = useSupabaseClient();
@@ -104,12 +107,54 @@ const Dashboard = () => {
               return true;
             });
 
+            const breakdownJSON = JSON.parse(data.breakdown);
+            let formattedBreakdown = `Breakdown: \n\n`;
+            // Loop through breakdown JSON
+            if (data.breakdown) {
+              Object.keys(breakdownJSON).forEach(function (key1, index1) {
+                if (index1 !== Object.keys(breakdownJSON).length - 1) {
+                  formattedBreakdown += `Product: ${key1}\n`;
+                } else {
+                  formattedBreakdown += `\n\nProduct: ${key1}\n`;
+                }
+
+                Object.keys(breakdownJSON[key1]).forEach(function (
+                  key2,
+                  index2
+                ) {
+                  const formattedKey =
+                    key2.charAt(0).toUpperCase() + key2.slice(1);
+                  if (index2 !== Object.keys(breakdownJSON[key1]).length - 1) {
+                    formattedBreakdown += `- ${formattedKey}: ${breakdownJSON[key1][key2]}\n`;
+                  } else {
+                    formattedBreakdown += `- ${formattedKey}: ${breakdownJSON[key1][key2]}`;
+                  }
+                });
+              });
+            }
+
             return [
               {
                 value: (
-                  <p>
-                    + ${data.water_footprint} <sub>litres (ℓ)</sub>
-                  </p>
+                  <div className="flex">
+                    <p>
+                      + {data.water_footprint} <sub> ℓ</sub>
+                    </p>
+                    <FlowbiteTooltip
+                      content={
+                        <div style={{ whiteSpace: "pre" }}>
+                          {formattedBreakdown}
+                        </div>
+                      }
+                    >
+                      <Image
+                        className="cursor-pointer ml-2"
+                        src={LogoInfo}
+                        width={15}
+                        alt="info"
+                      />
+                    </FlowbiteTooltip>
+                  </div>
                 ),
                 isLink: false
               },
@@ -132,7 +177,6 @@ const Dashboard = () => {
         setRawChartData(chartDataArr);
         setTotalCO(chartDataArr.reduce((a, b) => a + b, 0));
       }
-      console.log(dataTwo);
     })();
   }, []);
 
@@ -168,7 +212,7 @@ const Dashboard = () => {
   );
 
   return (
-    <MainLayout title={"Dashboard | EcoCart"}>
+    <MainLayout title={"Dashboard | AquaWise"}>
       {sgidVerified ? (
         <div className="max-w-screen-xl flex flex-col m-auto justify-center px-16">
           <div className="mt-5">
@@ -223,7 +267,8 @@ const Dashboard = () => {
               Verification Required.
             </h1>
             <p className="text-md text-gray-600">
-              To access EcoCart's services, please verify your account via SGID.
+              To access AquaWise's services, please verify your account via
+              SGID.
             </p>
           </div>
 
